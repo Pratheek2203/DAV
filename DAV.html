@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Social Media Analytics Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 50%, #34495e 100%);
+            min-height: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        html {
+            height: 100%;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #1a252f, #2c3e50, #34495e, #4a6741);
+            background-size: 400% 400%;
+            animation: gradientShift 30s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Subtle Floating Elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .floating-dot:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .floating-dot:nth-child(2) { top: 20%; right: 15%; animation-delay: 4s; }
+        .floating-dot:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 8s; }
+        .floating-dot:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 12s; }
+        .floating-dot:nth-child(5) { top: 50%; left: 45%; animation-delay: 2s; }
+        .floating-dot:nth-child(6) { top: 70%; right: 35%; animation-delay: 6s; }
+        .floating-dot:nth-child(7) { top: 35%; left: 75%; animation-delay: 10s; }
+        .floating-dot:nth-child(8) { bottom: 45%; right: 60%; animation-delay: 14s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+            50% { transform: translateY(-30px) scale(1.4); opacity: 0.7; }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a252f, #2c3e50);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+
+        .loading-logo {
+            font-size: 4.5rem;
+            color: #5dade2;
+            margin-bottom: 35px;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        .loading-progress {
+            width: 450px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #5dade2, #85c1e9, #aed6f1);
+            width: 0%;
+            animation: loadProgress 3.5s ease-out forwards;
+        }
+
+        @keyframes loadProgress {
+            to { width: 100%; }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.3rem;
+            opacity: 0.9;
+            font-weight: 400;
+            text-align: center;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1700px;
+            margin: 0 auto;
+            padding: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 45px;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .main-title {
+            font-size: 4.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 25px rgba(0,0,0,0.4);
+            background: linear-gradient(45deg, #ecf0f1, #d5dbdb, #5dade2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 5s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+            to { filter: drop-shadow(0 0 25px rgba(93,173,226,0.4)); }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            font-weight: 300;
+            margin-bottom: 12px;
+        }
+
+        .subtitle-accent {
+            font-size: 1.2rem;
+            color: #aed6f1;
+            font-weight: 400;
+        }
+
+        /* Current Country Display with Flag Animation */
+        .current-country {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            margin-bottom: 40px;
+            text-align: center;
+            border: 2px solid rgba(93, 173, 226, 0.3);
+            animation: slideInUp 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .current-country::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #5dade2, #85c1e9, #aed6f1, #5dade2);
+            background-size: 200% 100%;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .country-flag-container {
+            display: inline-block;
+            margin-right: 25px;
+            position: relative;
+        }
+
+        .country-flag {
+            width: 90px;
+            height: 68px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.6s ease;
+            filter: drop-shadow(0 6px 20px rgba(0,0,0,0.3));
+        }
+
+        .country-flag.animate {
+            animation: flagWave 2s ease-in-out;
+        }
+
+        @keyframes flagWave {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            20% { transform: scale(1.15) rotate(-3deg); }
+            40% { transform: scale(1.2) rotate(0deg); }
+            60% { transform: scale(1.15) rotate(3deg); }
+            80% { transform: scale(1.1) rotate(-1deg); }
+        }
+
+        .country-name {
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: white;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .country-info {
+            margin-top: 18px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.15rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* Platform Navigation */
+        .platform-nav {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 45px;
+            flex-wrap: wrap;
+            animation: slideInUp 1.2s ease-out;
+        }
+
+        .platform-btn {
+            padding: 18px 36px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.15rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .platform-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            transition: left 0.6s;
+        }
+
+        .platform-btn:hover::before {
+            left: 100%;
+        }
+
+        .platform-btn.instagram {
+            background: linear-gradient(45deg, #8e44ad, #a569bd);
+            color: white;
+        }
+
+        .platform-btn.snapchat {
+            background: linear-gradient(45deg, #f39c12, #f7dc6f);
+            color: white;
+        }
+
+        .platform-btn.twitch {
+            background: linear-gradient(45deg, #6f42c1, #9c88ff);
+            color: white;
+        }
+
+        .platform-btn.twitter {
+            background: linear-gradient(45deg, #5dade2, #85c1e9);
+            color: white;
+        }
+
+        .platform-btn:hover {
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: 0 18px 35px rgba(0,0,0,0.25);
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 45px;
+            border: 2px solid rgba(93, 173, 226, 0.25);
+            animation: slideInUp 1.4s ease-out;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        select, .action-btn {
+            padding: 14px 28px;
+            border: 2px solid rgba(93, 173, 226, 0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select option {
+            background: #1a252f;
+            color: white;
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #5dade2, #85c1e9);
+            border: none;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(93, 173, 226, 0.3);
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 45px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            text-align: center;
+            border: 2px solid rgba(93, 173, 226, 0.25);
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 1.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #5dade2, #85c1e9, #aed6f1, #5dade2);
+            background-size: 200% 100%;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            box-shadow: 0 25px 50px rgba(93, 173, 226, 0.2);
+            border-color: rgba(93, 173, 226, 0.4);
+        }
+
+        .stat-card.updating {
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        .stat-icon {
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+            color: #aed6f1;
+            filter: drop-shadow(0 0 10px rgba(93, 173, 226, 0.3));
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .stat-label {
+            font-size: 1.15rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 400;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(580px, 1fr));
+            gap: 35px;
+            margin-bottom: 45px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid rgba(93, 173, 226, 0.25);
+            transition: all 0.5s ease;
+            animation: slideInUp 1.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .chart-container:nth-child(1) { animation-delay: 0.2s; }
+        .chart-container:nth-child(2) { animation-delay: 0.4s; }
+        .chart-container:nth-child(3) { animation-delay: 0.6s; }
+        .chart-container:nth-child(4) { animation-delay: 0.8s; }
+
+        .chart-container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(93, 173, 226, 0.15);
+            border-color: rgba(93, 173, 226, 0.4);
+        }
+
+        .chart-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: white;
+            text-align: center;
+            position: relative;
+            padding-bottom: 18px;
+        }
+
+        .chart-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 4px;
+            background: linear-gradient(90deg, #5dade2, #85c1e9);
+            border-radius: 2px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 420px;
+        }
+
+        /* Country Rankings */
+        .country-rankings {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid rgba(93, 173, 226, 0.25);
+            animation: slideInUp 2s ease-out;
+            margin-bottom: 45px;
+        }
+
+        .rankings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 35px;
+            margin-top: 30px;
+        }
+
+        .platform-ranking {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 30px;
+            border: 2px solid rgba(93, 173, 226, 0.15);
+            transition: all 0.4s ease;
+        }
+
+        .platform-ranking:hover {
+            border-color: rgba(93, 173, 226, 0.35);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .platform-ranking h4 {
+            color: white;
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            border-bottom: 1px solid rgba(93, 173, 226, 0.2);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .country-item:hover {
+            background: rgba(93, 173, 226, 0.15);
+            transform: translateX(12px);
+            box-shadow: 0 8px 20px rgba(93, 173, 226, 0.1);
+        }
+
+        .country-item.selected {
+            background: rgba(93, 173, 226, 0.25);
+            border: 2px solid rgba(93, 173, 226, 0.5);
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(93, 173, 226, 0.2);
+        }
+
+        .country-item-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .country-rank {
+            background: linear-gradient(45deg, #5dade2, #85c1e9);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(93, 173, 226, 0.3);
+        }
+
+        .country-flag-small {
+            width: 36px;
+            height: 27px;
+            border-radius: 5px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.2));
+        }
+
+        .country-item-name {
+            color: white;
+            font-weight: 500;
+            font-size: 1.05rem;
+        }
+
+        .country-users {
+            color: #aed6f1;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        /* External Links */
+        .external-links {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid rgba(93, 173, 226, 0.25);
+            animation: slideInUp 2.2s ease-out;
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .link-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.4s ease;
+            border: 2px solid rgba(93, 173, 226, 0.15);
+            text-decoration: none;
+            color: white;
+        }
+
+        .link-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 40px rgba(93, 173, 226, 0.15);
+            border-color: rgba(93, 173, 226, 0.35);
+        }
+
+        .link-icon {
+            font-size: 2.2rem;
+            margin-bottom: 18px;
+            color: #aed6f1;
+            filter: drop-shadow(0 0 10px rgba(93, 173, 226, 0.3));
+        }
+
+        .link-title {
+            font-size: 1.15rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .link-description {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* Update Notification */
+        .update-notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            background: linear-gradient(45deg, #27ae60, #58d68d);
+            color: white;
+            padding: 18px 30px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(39, 174, 96, 0.3);
+            transform: translateX(450px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .update-notification.show {
+            transform: translateX(0);
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.8rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .platform-nav {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .country-flag {
+                width: 70px;
+                height: 52px;
+            }
+            
+            .country-name {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">📊</div>
+        <div class="loading-progress">
+            <div class="loading-bar"></div>
+        </div>
+        <div class="loading-text">Loading Advanced Social Media Analytics Dashboard...</div>
+    </div>
+
+    <!-- Update Notification -->
+    <div class="update-notification" id="updateNotification">
+        <i class="fas fa-check-circle"></i> 
+        <span>Data updated for <span id="notificationCountry"></span></span>
+    </div>
+
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+
+    <!-- Floating Elements -->
+    <div class="floating-elements">
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+        <div class="floating-dot"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <h1 class="main-title">Global Social Media Analytics</h1>
+            <p class="subtitle">Comprehensive insights across Instagram, Snapchat, Twitch & X</p>
+            <p class="subtitle-accent">Real-time data with interactive country exploration (2018-2025)</p>
+        </header>
+
+        <!-- Current Country Display -->
+        <section class="current-country">
+            <div class="country-flag-container">
+                <img src="https://flagcdn.com/w320/un.png" alt="Global Flag" class="country-flag" id="currentFlag">
+            </div>
+            <span class="country-name" id="currentCountryName">Global Overview</span>
+            <div class="country-info" id="currentCountryInfo">
+                Displaying comprehensive social media statistics across Instagram, Snapchat, Twitch, and X platforms worldwide with historical data from 2018-2025
+            </div>
+        </section>
+
+        <!-- Platform Navigation -->
+        <nav class="platform-nav">
+            <button class="platform-btn instagram" onclick="filterPlatform('instagram')">
+                <i class="fab fa-instagram"></i> Instagram
+            </button>
+            <button class="platform-btn snapchat" onclick="filterPlatform('snapchat')">
+                <i class="fab fa-snapchat-ghost"></i> Snapchat
+            </button>
+            <button class="platform-btn twitch" onclick="filterPlatform('twitch')">
+                <i class="fab fa-twitch"></i> Twitch
+            </button>
+            <button class="platform-btn twitter" onclick="filterPlatform('twitter')">
+                <i class="fab fa-twitter"></i> X (Twitter)
+            </button>
+        </nav>
+
+        <!-- Controls -->
+        <section class="controls">
+            <div class="control-group">
+                <select id="yearSelect">
+                    <option value="2024">2024 Data</option>
+                    <option value="2023">2023 Data</option>
+                    <option value="2022">2022 Data</option>
+                    <option value="2021">2021 Data</option>
+                    <option value="2020">2020 Data</option>
+                    <option value="2019">2019 Data</option>
+                    <option value="2018">2018 Data</option>
+                    <option value="2025">2025 Projections</option>
+                </select>
+                
+                <select id="regionSelect">
+                    <option value="global">Global Analysis</option>
+                    <option value="north-america">North America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia">Asia Pacific</option>
+                    <option value="africa">Africa</option>
+                    <option value="south-america">South America</option>
+                </select>
+                
+                <button class="action-btn" onclick="updateDashboard()">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+                
+                <button class="action-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+            </div>
+        </section>
+
+        <!-- Stats Overview -->
+        <section class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-number" id="totalUsers">4.12B</div>
+                <div class="stat-label">Total Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-number" id="growthRate">+12.3%</div>
+                <div class="stat-label">Annual Growth Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-globe"></i></div>
+                <div class="stat-number" id="countries">195</div>
+                <div class="stat-label">Countries Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="stat-number" id="engagement">84.7%</div>
+                <div class="stat-label">Mobile Usage</div>
+            </div>
+        </section>
+
+        <!-- Charts Grid -->
+        <section class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Platform Market Share</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title"><i class="fas fa-chart-bar"></i> Annual Growth Comparison</h3>
+                <div class="chart-wrapper">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title"><i class="fas fa-chart-scatter"></i> Engagement vs User Base</h3>
+                <div class="chart-wrapper">
+                    <canvas id="scatterChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 class="chart-title"><i class="fas fa-chart-line"></i> Historical Growth Trends</h3>
+                <div class="chart-wrapper">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Country Rankings -->
+        <section class="country-rankings">
+            <h3 class="chart-title"><i class="fas fa-trophy"></i> Interactive Country Rankings - Click to Explore</h3>
+            <div class="rankings-grid">
+                <div class="platform-ranking">
+                    <h4><i class="fab fa-instagram"></i> Instagram Leaders</h4>
+                    <div id="instagramRankings"></div>
+                </div>
+                <div class="platform-ranking">
+                    <h4><i class="fab fa-snapchat-ghost"></i> Snapchat Leaders</h4>
+                    <div id="snapchatRankings"></div>
+                </div>
+                <div class="platform-ranking">
+                    <h4><i class="fab fa-twitch"></i> Twitch Leaders</h4>
+                    <div id="twitchRankings"></div>
+                </div>
+                <div class="platform-ranking">
+                    <h4><i class="fab fa-twitter"></i> X Leaders</h4>
+                    <div id="twitterRankings"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- External Links -->
+        <section class="external-links">
+            <h3 class="chart-title"><i class="fas fa-external-link-alt"></i> External Resources & Live Statistics</h3>
+            <div class="links-grid">
+                <a href="https://www.statista.com/statistics/272014/global-social-networks-ranked-by-number-of-users/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="link-title">Statista Social Media Stats</div>
+                    <div class="link-description">Comprehensive global social media statistics and market analysis</div>
+                </a>
+                
+                <a href="https://socialblade.com/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-analytics"></i></div>
+                    <div class="link-title">Social Blade Analytics</div>
+                    <div class="link-description">Real-time social media tracking and performance analytics</div>
+                </a>
+                
+                <a href="https://twitchtracker.com/statistics" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fab fa-twitch"></i></div>
+                    <div class="link-title">Twitch Tracker</div>
+                    <div class="link-description">Live Twitch statistics, viewership data, and streaming analytics</div>
+                </a>
+                
+                <a href="https://www.pewresearch.org/internet/fact-sheet/social-media/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-research"></i></div>
+                    <div class="link-title">Pew Research Center</div>
+                    <div class="link-description">In-depth social media usage research and demographic studies</div>
+                </a>
+                
+                <a href="https://blog.hootsuite.com/social-media-statistics/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-blog"></i></div>
+                    <div class="link-title">Hootsuite Digital Report</div>
+                    <div class="link-description">Latest social media trends and platform updates</div>
+                </a>
+                
+                <a href="https://sproutsocial.com/insights/social-media-statistics/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-seedling"></i></div>
+                    <div class="link-title">Sprout Social Index</div>
+                    <div class="link-description">Industry benchmarks and engagement insights</div>
+                </a>
+                
+                <a href="https://www.globalwebindex.com/reports/social" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-globe-americas"></i></div>
+                    <div class="link-title">GlobalWebIndex</div>
+                    <div class="link-description">Global social media behavior and demographics</div>
+                </a>
+                
+                <a href="https://napoleoncat.com/stats/" target="_blank" rel="noopener noreferrer" class="link-card">
+                    <div class="link-icon"><i class="fas fa-cat"></i></div>
+                    <div class="link-title">NapoleonCat Statistics</div>
+                    <div class="link-description">Platform-specific analytics and audience insights</div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Comprehensive historical data from 2018-2025 with Twitch
+        const countryData = {
+            'United States': {
+                code: 'us',
+                info: 'Leading social media market with highest engagement rates, streaming culture, and advertising spend',
+                years: {
+                    2018: {
+                        instagram: { users: 110.0, growth: 10.2, engagement: 88.5, demographics: 'Gen Z: 28%, Millennials: 45%, Gen X: 20%' },
+                        snapchat: { users: 78.4, growth: 15.8, engagement: 75.2, demographics: 'Gen Z: 45%, Millennials: 38%, Gen X: 12%' },
+                        twitch: { users: 15.0, growth: 26.8, engagement: 82.4, demographics: 'Gen Z: 52%, Millennials: 35%, Gen X: 10%' },
+                        twitter: { users: 68.7, growth: 5.2, engagement: 68.4, demographics: 'Millennials: 40%, Gen X: 35%, Boomers: 18%' }
+                    },
+                    2019: {
+                        instagram: { users: 121.0, growth: 10.0, engagement: 89.2, demographics: 'Gen Z: 29%, Millennials: 44%, Gen X: 19%' },
+                        snapchat: { users: 85.3, growth: 8.8, engagement: 76.1, demographics: 'Gen Z: 46%, Millennials: 37%, Gen X: 12%' },
+                        twitch: { users: 20.2, growth: 34.7, engagement: 83.8, demographics: 'Gen Z: 53%, Millennials: 34%, Gen X: 10%' },
+                        twitter: { users: 69.3, growth: 0.9, engagement: 67.8, demographics: 'Millennials: 39%, Gen X: 34%, Boomers: 19%' }
+                    },
+                    2020: {
+                        instagram: { users: 140.0, growth: 15.7, engagement: 89.8, demographics: 'Gen Z: 30%, Millennials: 43%, Gen X: 19%' },
+                        snapchat: { users: 90.8, growth: 6.4, engagement: 76.8, demographics: 'Gen Z: 47%, Millennials: 36%, Gen X: 12%' },
+                        twitch: { users: 41.5, growth: 105.4, engagement: 86.2, demographics: 'Gen Z: 55%, Millennials: 32%, Gen X: 10%' },
+                        twitter: { users: 69.3, growth: 0.0, engagement: 66.9, demographics: 'Millennials: 38%, Gen X: 33%, Boomers: 20%' }
+                    },
+                    2021: {
+                        instagram: { users: 150.0, growth: 7.1, engagement: 90.4, demographics: 'Gen Z: 31%, Millennials: 43%, Gen X: 18%' },
+                        snapchat: { users: 98.2, growth: 8.1, engagement: 77.2, demographics: 'Gen Z: 47%, Millennials: 36%, Gen X: 12%' },
+                        twitch: { users: 72.2, growth: 74.0, engagement: 87.5, demographics: 'Gen Z: 56%, Millennials: 31%, Gen X: 10%' },
+                        twitter: { users: 77.0, growth: 11.1, engagement: 66.2, demographics: 'Millennials: 38%, Gen X: 32%, Boomers: 20%' }
+                    },
+                    2022: {
+                        instagram: { users: 153.0, growth: 2.0, engagement: 90.8, demographics: 'Gen Z: 31%, Millennials: 43%, Gen X: 18%' },
+                        snapchat: { users: 100.0, growth: 1.8, engagement: 77.6, demographics: 'Gen Z: 48%, Millennials: 35%, Gen X: 12%' },
+                        twitch: { users: 76.8, growth: 6.4, engagement: 88.1, demographics: 'Gen Z: 57%, Millennials: 30%, Gen X: 10%' },
+                        twitter: { users: 76.9, growth: -0.1, engagement: 65.9, demographics: 'Millennials: 38%, Gen X: 32%, Boomers: 20%' }
+                    },
+                    2023: {
+                        instagram: { users: 155.0, growth: 1.3, engagement: 91.0, demographics: 'Gen Z: 32%, Millennials: 43%, Gen X: 18%' },
+                        snapchat: { users: 106.2, growth: 6.2, engagement: 78.0, demographics: 'Gen Z: 48%, Millennials: 35%, Gen X: 12%' },
+                        twitch: { users: 83.1, growth: 8.2, engagement: 88.6, demographics: 'Gen Z: 58%, Millennials: 29%, Gen X: 10%' },
+                        twitter: { users: 95.4, growth: 24.0, engagement: 65.6, demographics: 'Millennials: 38%, Gen X: 32%, Boomers: 20%' }
+                    },
+                    2024: {
+                        instagram: { users: 159.75, growth: 3.1, engagement: 91.2, demographics: 'Gen Z: 32%, Millennials: 43%, Gen X: 18%' },
+                        snapchat: { users: 108.8, growth: 2.4, engagement: 78.4, demographics: 'Gen Z: 48%, Millennials: 35%, Gen X: 12%' },
+                        twitch: { users: 89.5, growth: 7.7, engagement: 89.1, demographics: 'Gen Z: 58%, Millennials: 29%, Gen X: 10%' },
+                        twitter: { users: 95.4, growth: 0.0, engagement: 65.8, demographics: 'Millennials: 38%, Gen X: 32%, Boomers: 20%' }
+                    },
+                    2025: {
+                        instagram: { users: 165.0, growth: 3.3, engagement: 91.5, demographics: 'Gen Z: 33%, Millennials: 42%, Gen X: 18%' },
+                        snapchat: { users: 112.0, growth: 2.9, engagement: 78.8, demographics: 'Gen Z: 49%, Millennials: 34%, Gen X: 12%' },
+                        twitch: { users: 96.8, growth: 8.2, engagement: 89.6, demographics: 'Gen Z: 59%, Millennials: 28%, Gen X: 10%' },
+                        twitter: { users: 98.0, growth: 2.7, engagement: 66.2, demographics: 'Millennials: 37%, Gen X: 32%, Boomers: 21%' }
+                    }
+                }
+            },
+            'India': {
+                code: 'in',
+                info: 'World\'s largest social media market with explosive growth and emerging streaming culture',
+                years: {
+                    2018: {
+                        instagram: { users: 75.0, growth: 28.5, engagement: 78.2, demographics: 'Gen Z: 38%, Millennials: 42%, Gen X: 15%' },
+                        snapchat: { users: 28.1, growth: 45.2, engagement: 75.8, demographics: 'Gen Z: 48%, Millennials: 35%, Gen X: 12%' },
+                        twitch: { users: 2.1, growth: 89.4, engagement: 76.8, demographics: 'Gen Z: 62%, Millennials: 28%, Gen X: 7%' },
+                        twitter: { users: 13.2, growth: 15.8, engagement: 68.4, demographics: 'Millennials: 45%, Gen X: 32%, Gen Z: 18%' }
+                    },
+                    2019: {
+                        instagram: { users: 89.4, growth: 19.2, engagement: 79.8, demographics: 'Gen Z: 40%, Millennials: 41%, Gen X: 14%' },
+                        snapchat: { users: 37.8, growth: 34.5, engagement: 77.2, demographics: 'Gen Z: 49%, Millennials: 34%, Gen X: 12%' },
+                        twitch: { users: 4.2, growth: 100.0, engagement: 78.5, demographics: 'Gen Z: 63%, Millennials: 27%, Gen X: 7%' },
+                        twitter: { users: 15.7, growth: 18.9, engagement: 69.1, demographics: 'Millennials: 44%, Gen X: 31%, Gen Z: 20%' }
+                    },
+                    2020: {
+                        instagram: { users: 120.0, growth: 34.2, engagement: 81.4, demographics: 'Gen Z: 42%, Millennials: 40%, Gen X: 13%' },
+                        snapchat: { users: 64.2, growth: 69.8, engagement: 78.9, demographics: 'Gen Z: 50%, Millennials: 33%, Gen X: 12%' },
+                        twitch: { users: 8.9, growth: 111.9, engagement: 80.8, demographics: 'Gen Z: 64%, Millennials: 26%, Gen X: 7%' },
+                        twitter: { users: 17.5, growth: 11.5, engagement: 69.8, demographics: 'Millennials: 43%, Gen X: 30%, Gen Z: 22%' }
+                    },
+                    2021: {
+                        instagram: { users: 140.0, growth: 16.7, engagement: 82.7, demographics: 'Gen Z: 43%, Millennials: 39%, Gen X: 13%' },
+                        snapchat: { users: 100.4, growth: 56.4, engagement: 80.1, demographics: 'Gen Z: 51%, Millennials: 32%, Gen X: 12%' },
+                        twitch: { users: 18.5, growth: 107.9, engagement: 82.4, demographics: 'Gen Z: 65%, Millennials: 25%, Gen X: 7%' },
+                        twitter: { users: 24.6, growth: 40.6, engagement: 70.5, demographics: 'Millennials: 42%, Gen X: 29%, Gen Z: 24%' }
+                    },
+                    2022: {
+                        instagram: { users: 180.0, growth: 28.6, engagement: 83.9, demographics: 'Gen Z: 44%, Millennials: 38%, Gen X: 13%' },
+                        snapchat: { users: 115.9, growth: 15.4, engagement: 81.0, demographics: 'Gen Z: 51%, Millennials: 32%, Gen X: 11%' },
+                        twitch: { users: 25.8, growth: 39.5, engagement: 83.8, demographics: 'Gen Z: 66%, Millennials: 24%, Gen X: 7%' },
+                        twitter: { users: 23.6, growth: -4.1, engagement: 70.9, demographics: 'Millennials: 42%, Gen X: 28%, Gen Z: 25%' }
+                    },
+                    2023: {
+                        instagram: { users: 200.0, growth: 11.1, engagement: 84.8, demographics: 'Gen Z: 44%, Millennials: 38%, Gen X: 12%' },
+                        snapchat: { users: 125.8, growth: 8.5, engagement: 81.6, demographics: 'Gen Z: 52%, Millennials: 31%, Gen X: 11%' },
+                        twitch: { users: 31.2, growth: 20.9, engagement: 84.5, demographics: 'Gen Z: 67%, Millennials: 23%, Gen X: 7%' },
+                        twitter: { users: 25.5, growth: 8.1, engagement: 71.2, demographics: 'Millennials: 42%, Gen X: 28%, Gen Z: 25%' }
+                    },
+                    2024: {
+                        instagram: { users: 230.25, growth: 15.1, engagement: 85.6, demographics: 'Gen Z: 45%, Millennials: 38%, Gen X: 12%' },
+                        snapchat: { users: 144.35, growth: 14.7, engagement: 82.1, demographics: 'Gen Z: 52%, Millennials: 31%, Gen X: 11%' },
+                        twitch: { users: 38.7, growth: 24.0, engagement: 85.2, demographics: 'Gen Z: 67%, Millennials: 23%, Gen X: 7%' },
+                        twitter: { users: 25.5, growth: 0.0, engagement: 71.4, demographics: 'Millennials: 42%, Gen X: 28%, Gen Z: 23%' }
+                    },
+                    2025: {
+                        instagram: { users: 265.0, growth: 15.1, engagement: 86.2, demographics: 'Gen Z: 46%, Millennials: 37%, Gen X: 12%' },
+                        snapchat: { users: 165.0, growth: 14.3, engagement: 82.8, demographics: 'Gen Z: 53%, Millennials: 30%, Gen X: 11%' },
+                        twitch: { users: 47.5, growth: 22.7, engagement: 85.8, demographics: 'Gen Z: 68%, Millennials: 22%, Gen X: 7%' },
+                        twitter: { users: 27.0, growth: 5.9, engagement: 72.0, demographics: 'Millennials: 41%, Gen X: 28%, Gen Z: 26%' }
+                    }
+                }
+            },
+            'Brazil': {
+                code: 'br',
+                info: 'Latin America\'s social media leader with vibrant streaming and creative content culture',
+                years: {
+                    2018: {
+                        instagram: { users: 66.0, growth: 12.8, engagement: 85.2, demographics: 'Gen Z: 38%, Millennials: 42%, Gen X: 16%' },
+                        snapchat: { users: 8.9, growth: 28.4, engagement: 72.1, demographics: 'Gen Z: 46%, Millennials: 36%, Gen X: 14%' },
+                        twitch: { users: 3.2, growth: 45.8, engagement: 79.4, demographics: 'Gen Z: 58%, Millennials: 30%, Gen X: 9%' },
+                        twitter: { users: 16.6, growth: 3.2, engagement: 65.4, demographics: 'Millennials: 38%, Gen X: 36%, Gen Z: 19%' }
+                    },
+                    2019: {
+                        instagram: { users: 72.0, growth: 9.1, engagement: 86.1, demographics: 'Gen Z: 39%, Millennials: 41%, Gen X: 16%' },
+                        snapchat: { users: 11.2, growth: 25.8, engagement: 73.2, demographics: 'Gen Z: 47%, Millennials: 35%, Gen X: 14%' },
+                        twitch: { users: 5.1, growth: 59.4, engagement: 80.8, demographics: 'Gen Z: 59%, Millennials: 29%, Gen X: 9%' },
+                        twitter: { users: 17.1, growth: 3.0, engagement: 66.1, demographics: 'Millennials: 37%, Gen X: 35%, Gen Z: 20%' }
+                    },
+                    2020: {
+                        instagram: { users: 95.8, growth: 33.1, engagement: 87.2, demographics: 'Gen Z: 40%, Millennials: 40%, Gen X: 15%' },
+                        snapchat: { users: 13.8, growth: 23.2, engagement: 74.1, demographics: 'Gen Z: 48%, Millennials: 34%, Gen X: 14%' },
+                        twitch: { users: 10.2, growth: 100.0, engagement: 82.5, demographics: 'Gen Z: 60%, Millennials: 28%, Gen X: 9%' },
+                        twitter: { users: 17.0, growth: -0.6, engagement: 66.8, demographics: 'Millennials: 37%, Gen X: 35%, Gen Z: 20%' }
+                    },
+                    2021: {
+                        instagram: { users: 110.0, growth: 14.8, engagement: 87.9, demographics: 'Gen Z: 40%, Millennials: 40%, Gen X: 15%' },
+                        snapchat: { users: 15.2, growth: 10.1, engagement: 74.8, demographics: 'Gen Z: 48%, Millennials: 34%, Gen X: 13%' },
+                        twitch: { users: 16.8, growth: 64.7, engagement: 83.9, demographics: 'Gen Z: 61%, Millennials: 27%, Gen X: 9%' },
+                        twitter: { users: 19.05, growth: 12.1, engagement: 67.4, demographics: 'Millennials: 36%, Gen X: 34%, Gen Z: 21%' }
+                    },
+                    2022: {
+                        instagram: { users: 113.0, growth: 2.7, engagement: 88.3, demographics: 'Gen Z: 41%, Millennials: 39%, Gen X: 15%' },
+                        snapchat: { users: 16.8, growth: 10.5, engagement: 75.2, demographics: 'Gen Z: 49%, Millennials: 33%, Gen X: 13%' },
+                        twitch: { users: 20.5, growth: 22.0, engagement: 84.6, demographics: 'Gen Z: 62%, Millennials: 26%, Gen X: 9%' },
+                        twitter: { users: 19.05, growth: 0.0, engagement: 67.8, demographics: 'Millennials: 36%, Gen X: 34%, Gen Z: 21%' }
+                    },
+                    2023: {
+                        instagram: { users: 116.5, growth: 3.1, engagement: 88.6, demographics: 'Gen Z: 41%, Millennials: 39%, Gen X: 15%' },
+                        snapchat: { users: 17.8, growth: 6.0, engagement: 75.4, demographics: 'Gen Z: 49%, Millennials: 33%, Gen X: 13%' },
+                        twitch: { users: 23.8, growth: 16.1, engagement: 85.2, demographics: 'Gen Z: 63%, Millennials: 25%, Gen X: 9%' },
+                        twitter: { users: 19.05, growth: 0.0, engagement: 68.0, demographics: 'Millennials: 36%, Gen X: 34%, Gen Z: 21%' }
+                    },
+                    2024: {
+                        instagram: { users: 119.45, growth: 2.5, engagement: 88.9, demographics: 'Gen Z: 41%, Millennials: 39%, Gen X: 15%' },
+                        snapchat: { users: 18.2, growth: 2.2, engagement: 75.6, demographics: 'Gen Z: 49%, Millennials: 33%, Gen X: 13%' },
+                        twitch: { users: 26.9, growth: 13.0, engagement: 85.8, demographics: 'Gen Z: 63%, Millennials: 25%, Gen X: 9%' },
+                        twitter: { users: 19.05, growth: 0.0, engagement: 68.2, demographics: 'Millennials: 36%, Gen X: 34%, Gen Z: 21%' }
+                    },
+                    2025: {
+                        instagram: { users: 123.0, growth: 3.0, engagement: 89.2, demographics: 'Gen Z: 42%, Millennials: 38%, Gen X: 15%' },
+                        snapchat: { users: 19.0, growth: 4.4, engagement: 76.0, demographics: 'Gen Z: 50%, Millennials: 32%, Gen X: 13%' },
+                        twitch: { users: 30.8, growth: 14.5, engagement: 86.4, demographics: 'Gen Z: 64%, Millennials: 24%, Gen X: 9%' },
+                        twitter: { users: 20.0, growth: 5.0, engagement: 68.6, demographics: 'Millennials: 35%, Gen X: 34%, Gen Z: 22%' }
+                    }
+                }
+            },
+            'Germany': {
+                code: 'de',
+                info: 'Europe\'s largest economy with strong gaming culture and high digital engagement',
+                years: {
+                    2018: {
+                        instagram: { users: 21.0, growth: 9.5, engagement: 79.8, demographics: 'Gen Z: 31%, Millennials: 43%, Gen X: 20%' },
+                        snapchat: { users: 9.2, growth: 15.2, engagement: 68.4, demographics: 'Gen Z: 42%, Millennials: 38%, Gen X: 16%' },
+                        twitch: { users: 4.8, growth: 32.4, engagement: 81.2, demographics: 'Gen Z: 48%, Millennials: 38%, Gen X: 11%' },
+                        twitter: { users: 12.1, growth: 4.8, engagement: 63.2, demographics: 'Millennials: 35%, Gen X: 42%, Gen Z: 16%' }
+                    },
+                    2019: {
+                        instagram: { users: 23.0, growth: 9.5, engagement: 80.6, demographics: 'Gen Z: 32%, Millennials: 42%, Gen X: 20%' },
+                        snapchat: { users: 10.1, growth: 9.8, engagement: 69.2, demographics: 'Gen Z: 43%, Millennials: 37%, Gen X: 16%' },
+                        twitch: { users: 6.5, growth: 35.4, engagement: 82.1, demographics: 'Gen Z: 49%, Millennials: 37%, Gen X: 11%' },
+                        twitter: { users: 12.6, growth: 4.1, engagement: 64.0, demographics: 'Millennials: 34%, Gen X: 41%, Gen Z: 17%' }
+                    },
+                    2020: {
+                        instagram: { users: 25.7, growth: 11.7, engagement: 81.4, demographics: 'Gen Z: 33%, Millennials: 41%, Gen X: 19%' },
+                        snapchat: { users: 10.8, growth: 6.9, engagement: 70.1, demographics: 'Gen Z: 44%, Millennials: 36%, Gen X: 16%' },
+                        twitch: { users: 9.8, growth: 50.8, engagement: 83.5, demographics: 'Gen Z: 51%, Millennials: 35%, Gen X: 11%' },
+                        twitter: { users: 12.9, growth: 2.4, engagement: 64.5, demographics: 'Millennials: 34%, Gen X: 40%, Gen Z: 18%' }
+                    },
+                    2021: {
+                        instagram: { users: 27.8, growth: 8.2, engagement: 82.1, demographics: 'Gen Z: 34%, Millennials: 41%, Gen X: 19%' },
+                        snapchat: { users: 11.2, growth: 3.7, engagement: 70.8, demographics: 'Gen Z: 44%, Millennials: 36%, Gen X: 15%' },
+                        twitch: { users: 12.5, growth: 27.6, engagement: 84.2, demographics: 'Gen Z: 52%, Millennials: 34%, Gen X: 11%' },
+                        twitter: { users: 13.2, growth: 2.3, engagement: 65.1, demographics: 'Millennials: 33%, Gen X: 40%, Gen Z: 19%' }
+                    },
+                    2022: {
+                        instagram: { users: 28.5, growth: 2.5, engagement: 82.6, demographics: 'Gen Z: 35%, Millennials: 40%, Gen X: 19%' },
+                        snapchat: { users: 11.5, growth: 2.7, engagement: 71.2, demographics: 'Gen Z: 45%, Millennials: 35%, Gen X: 15%' },
+                        twitch: { users: 14.2, growth: 13.6, engagement: 84.8, demographics: 'Gen Z: 53%, Millennials: 33%, Gen X: 11%' },
+                        twitter: { users: 13.4, growth: 1.5, engagement: 65.4, demographics: 'Millennials: 33%, Gen X: 39%, Gen Z: 20%' }
+                    },
+                    2023: {
+                        instagram: { users: 29.1, growth: 2.1, engagement: 82.9, demographics: 'Gen Z: 35%, Millennials: 40%, Gen X: 19%' },
+                        snapchat: { users: 11.8, growth: 2.6, engagement: 71.5, demographics: 'Gen Z: 45%, Millennials: 35%, Gen X: 15%' },
+                        twitch: { users: 15.8, growth: 11.3, engagement: 85.3, demographics: 'Gen Z: 54%, Millennials: 32%, Gen X: 11%' },
+                        twitter: { users: 13.5, growth: 0.7, engagement: 65.6, demographics: 'Millennials: 33%, Gen X: 39%, Gen Z: 20%' }
+                    },
+                    2024: {
+                        instagram: { users: 29.8, growth: 2.4, engagement: 83.2, demographics: 'Gen Z: 36%, Millennials: 40%, Gen X: 18%' },
+                        snapchat: { users: 12.1, growth: 2.5, engagement: 71.8, demographics: 'Gen Z: 46%, Millennials: 34%, Gen X: 15%' },
+                        twitch: { users: 17.2, growth: 8.9, engagement: 85.7, demographics: 'Gen Z: 54%, Millennials: 32%, Gen X: 11%' },
+                        twitter: { users: 13.6, growth: 0.7, engagement: 65.8, demographics: 'Millennials: 32%, Gen X: 39%, Gen Z: 21%' }
+                    },
+                    2025: {
+                        instagram: { users: 30.8, growth: 3.4, engagement: 83.6, demographics: 'Gen Z: 37%, Millennials: 39%, Gen X: 18%' },
+                        snapchat: { users: 12.5, growth: 3.3, engagement: 72.2, demographics: 'Gen Z: 47%, Millennials: 33%, Gen X: 15%' },
+                        twitch: { users: 19.0, growth: 10.5, engagement: 86.2, demographics: 'Gen Z: 55%, Millennials: 31%, Gen X: 11%' },
+                        twitter: { users: 14.0, growth: 2.9, engagement: 66.2, demographics: 'Millennials: 32%, Gen X: 38%, Gen Z: 22%' }
+                    }
+                }
+            },
+            'United Kingdom': {
+                code: 'gb',
+                info: 'Mature European market with high digital literacy, strong gaming community, and engagement',
+                years: {
+                    2018: {
+                        instagram: { users: 24.0, growth: 8.5, engagement: 80.2, demographics: 'Gen Z: 33%, Millennials: 44%, Gen X: 18%' },
+                        snapchat: { users: 16.8, growth: 12.4, engagement: 70.8, demographics: 'Gen Z: 41%, Millennials: 40%, Gen X: 15%' },
+                        twitch: { users: 3.2, growth: 28.4, engagement: 78.9, demographics: 'Gen Z: 46%, Millennials: 39%, Gen X: 12%' },
+                        twitter: { users: 15.8, growth: 2.1, engagement: 65.4, demographics: 'Millennials: 37%, Gen X: 40%, Gen Z: 16%' }
+                    },
+                    2019: {
+                        instagram: { users: 26.0, growth: 8.3, engagement: 81.1, demographics: 'Gen Z: 34%, Millennials: 43%, Gen X: 18%' },
+                        snapchat: { users: 17.9, growth: 6.5, engagement: 71.5, demographics: 'Gen Z: 42%, Millennials: 39%, Gen X: 15%' },
+                        twitch: { users: 4.2, growth: 31.3, engagement: 79.8, demographics: 'Gen Z: 47%, Millennials: 38%, Gen X: 12%' },
+                        twitter: { users: 16.2, growth: 2.5, engagement: 66.1, demographics: 'Millennials: 36%, Gen X: 39%, Gen Z: 17%' }
+                    },
+                    2020: {
+                        instagram: { users: 28.5, growth: 9.6, engagement: 82.0, demographics: 'Gen Z: 35%, Millennials: 42%, Gen X: 17%' },
+                        snapchat: { users: 18.8, growth: 5.0, engagement: 72.4, demographics: 'Gen Z: 43%, Millennials: 38%, Gen X: 14%' },
+                        twitch: { users: 6.8, growth: 61.9, engagement: 81.2, demographics: 'Gen Z: 49%, Millennials: 36%, Gen X: 12%' },
+                        twitter: { users: 16.9, growth: 4.3, engagement: 66.5, demographics: 'Millennials: 36%, Gen X: 38%, Gen Z: 18%' }
+                    },
+                    2021: {
+                        instagram: { users: 29.8, growth: 4.6, engagement: 82.7, demographics: 'Gen Z: 35%, Millennials: 42%, Gen X: 17%' },
+                        snapchat: { users: 19.2, growth: 2.1, engagement: 73.0, demographics: 'Gen Z: 43%, Millennials: 38%, Gen X: 14%' },
+                        twitch: { users: 9.5, growth: 39.7, engagement: 82.4, demographics: 'Gen Z: 50%, Millennials: 35%, Gen X: 12%' },
+                        twitter: { users: 17.5, growth: 3.6, engagement: 66.8, demographics: 'Millennials: 35%, Gen X: 38%, Gen Z: 18%' }
+                    },
+                    2022: {
+                        instagram: { users: 30.2, growth: 1.3, engagement: 83.1, demographics: 'Gen Z: 36%, Millennials: 42%, Gen X: 17%' },
+                        snapchat: { users: 19.6, growth: 2.1, engagement: 73.4, demographics: 'Gen Z: 44%, Millennials: 37%, Gen X: 14%' },
+                        twitch: { users: 10.8, growth: 13.7, engagement: 83.1, demographics: 'Gen Z: 51%, Millennials: 34%, Gen X: 12%' },
+                        twitter: { users: 17.7, growth: 1.1, engagement: 67.0, demographics: 'Millennials: 35%, Gen X: 38%, Gen Z: 18%' }
+                    },
+                    2023: {
+                        instagram: { users: 30.5, growth: 1.0, engagement: 83.2, demographics: 'Gen Z: 36%, Millennials: 42%, Gen X: 17%' },
+                        snapchat: { users: 19.8, growth: 1.0, engagement: 73.6, demographics: 'Gen Z: 44%, Millennials: 37%, Gen X: 14%' },
+                        twitch: { users: 12.1, growth: 12.0, engagement: 83.6, demographics: 'Gen Z: 52%, Millennials: 33%, Gen X: 12%' },
+                        twitter: { users: 17.7, growth: 0.0, engagement: 67.0, demographics: 'Millennials: 35%, Gen X: 38%, Gen Z: 18%' }
+                    },
+                    2024: {
+                        instagram: { users: 30.9, growth: 1.3, engagement: 83.4, demographics: 'Gen Z: 36%, Millennials: 42%, Gen X: 17%' },
+                        snapchat: { users: 20.0, growth: 1.0, engagement: 73.8, demographics: 'Gen Z: 44%, Millennials: 37%, Gen X: 14%' },
+                        twitch: { users: 13.2, growth: 9.1, engagement: 84.0, demographics: 'Gen Z: 52%, Millennials: 33%, Gen X: 12%' },
+                        twitter: { users: 17.7, growth: 0.0, engagement: 67.1, demographics: 'Millennials: 35%, Gen X: 38%, Gen Z: 18%' }
+                    },
+                    2025: {
+                        instagram: { users: 31.5, growth: 1.9, engagement: 83.7, demographics: 'Gen Z: 37%, Millennials: 41%, Gen X: 17%' },
+                        snapchat: { users: 20.5, growth: 2.5, engagement: 74.2, demographics: 'Gen Z: 45%, Millennials: 36%, Gen X: 14%' },
+                        twitch: { users: 14.5, growth: 9.8, engagement: 84.5, demographics: 'Gen Z: 53%, Millennials: 32%, Gen X: 12%' },
+                        twitter: { users: 18.2, growth: 2.8, engagement: 67.5, demographics: 'Millennials: 34%, Gen X: 38%, Gen Z: 19%' }
+                    }
+                }
+            },
+            'Japan': {
+                code: 'jp',
+                info: 'Advanced digital market with unique social media preferences and strong gaming culture',
+                years: {
+                    2018: {
+                        instagram: { users: 29.0, growth: 15.2, engagement: 76.8, demographics: 'Gen Z: 35%, Millennials: 38%, Gen X: 22%' },
+                        snapchat: { users: 2.1, growth: 8.4, engagement: 62.4, demographics: 'Gen Z: 48%, Millennials: 32%, Gen X: 16%' },
+                        twitch: { users: 1.8, growth: 42.8, engagement: 79.2, demographics: 'Gen Z: 52%, Millennials: 34%, Gen X: 11%' },
+                        twitter: { users: 45.0, growth: 3.2, engagement: 71.8, demographics: 'Millennials: 42%, Gen X: 35%, Gen Z: 18%' }
+                    },
+                    2019: {
+                        instagram: { users: 33.0, growth: 13.8, engagement: 78.2, demographics: 'Gen Z: 36%, Millennials: 37%, Gen X: 22%' },
+                        snapchat: { users: 2.3, growth: 9.5, engagement: 63.8, demographics: 'Gen Z: 49%, Millennials: 31%, Gen X: 16%' },
+                        twitch: { users: 2.6, growth: 44.4, engagement: 80.5, demographics: 'Gen Z: 53%, Millennials: 33%, Gen X: 11%' },
+                        twitter: { users: 45.9, growth: 2.0, engagement: 72.4, demographics: 'Millennials: 41%, Gen X: 34%, Gen Z: 19%' }
+                    },
+                    2020: {
+                        instagram: { users: 35.7, growth: 8.2, engagement: 79.1, demographics: 'Gen Z: 37%, Millennials: 36%, Gen X: 21%' },
+                        snapchat: { users: 2.4, growth: 4.3, engagement: 64.5, demographics: 'Gen Z: 50%, Millennials: 30%, Gen X: 16%' },
+                        twitch: { users: 4.2, growth: 61.5, engagement: 82.1, demographics: 'Gen Z: 55%, Millennials: 31%, Gen X: 11%' },
+                        twitter: { users: 46.2, growth: 0.7, engagement: 72.8, demographics: 'Millennials: 40%, Gen X: 34%, Gen Z: 20%' }
+                    },
+                    2021: {
+                        instagram: { users: 37.8, growth: 5.9, engagement: 79.8, demographics: 'Gen Z: 38%, Millennials: 36%, Gen X: 21%' },
+                        snapchat: { users: 2.5, growth: 4.2, engagement: 65.1, demographics: 'Gen Z: 50%, Millennials: 30%, Gen X: 16%' },
+                        twitch: { users: 5.8, growth: 38.1, engagement: 83.2, demographics: 'Gen Z: 56%, Millennials: 30%, Gen X: 11%' },
+                        twitter: { users: 46.8, growth: 1.3, engagement: 73.2, demographics: 'Millennials: 40%, Gen X: 33%, Gen Z: 21%' }
+                    },
+                    2022: {
+                        instagram: { users: 38.9, growth: 2.9, engagement: 80.2, demographics: 'Gen Z: 39%, Millennials: 35%, Gen X: 21%' },
+                        snapchat: { users: 2.6, growth: 4.0, engagement: 65.4, demographics: 'Gen Z: 51%, Millennials: 29%, Gen X: 16%' },
+                        twitch: { users: 6.8, growth: 17.2, engagement: 83.8, demographics: 'Gen Z: 57%, Millennials: 29%, Gen X: 11%' },
+                        twitter: { users: 47.1, growth: 0.6, engagement: 73.5, demographics: 'Millennials: 39%, Gen X: 33%, Gen Z: 22%' }
+                    },
+                    2023: {
+                        instagram: { users: 39.8, growth: 2.3, engagement: 80.6, demographics: 'Gen Z: 39%, Millennials: 35%, Gen X: 20%' },
+                        snapchat: { users: 2.7, growth: 3.8, engagement: 65.8, demographics: 'Gen Z: 51%, Millennials: 29%, Gen X: 16%' },
+                        twitch: { users: 7.6, growth: 11.8, engagement: 84.2, demographics: 'Gen Z: 58%, Millennials: 28%, Gen X: 11%' },
+                        twitter: { users: 47.3, growth: 0.4, engagement: 73.7, demographics: 'Millennials: 39%, Gen X: 32%, Gen Z: 23%' }
+                    },
+                    2024: {
+                        instagram: { users: 40.5, growth: 1.8, engagement: 80.9, demographics: 'Gen Z: 40%, Millennials: 35%, Gen X: 20%' },
+                        snapchat: { users: 2.8, growth: 3.7, engagement: 66.1, demographics: 'Gen Z: 52%, Millennials: 28%, Gen X: 16%' },
+                        twitch: { users: 8.2, growth: 7.9, engagement: 84.6, demographics: 'Gen Z: 58%, Millennials: 28%, Gen X: 11%' },
+                        twitter: { users: 47.5, growth: 0.4, engagement: 73.9, demographics: 'Millennials: 38%, Gen X: 32%, Gen Z: 24%' }
+                    },
+                    2025: {
+                        instagram: { users: 41.5, growth: 2.5, engagement: 81.3, demographics: 'Gen Z: 41%, Millennials: 34%, Gen X: 20%' },
+                        snapchat: { users: 2.9, growth: 3.6, engagement: 66.5, demographics: 'Gen Z: 53%, Millennials: 27%, Gen X: 16%' },
+                        twitch: { users: 9.0, growth: 9.8, engagement: 85.1, demographics: 'Gen Z: 59%, Millennials: 27%, Gen X: 11%' },
+                        twitter: { users: 48.0, growth: 1.1, engagement: 74.3, demographics: 'Millennials: 38%, Gen X: 31%, Gen Z: 25%' }
+                    }
+                }
+            }
+        };
+
+        let pieChart, barChart, scatterChart, lineChart;
+        let currentCountry = 'Global';
+        let currentPlatform = 'all';
+        let currentYear = '2024';
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }, 800);
+            }, 3500);
+
+            initializeCharts();
+            updateCountryRankings();
+            
+            // Add year selector event listener
+            document.getElementById('yearSelect').addEventListener('change', function(e) {
+                currentYear = e.target.value;
+                updateCountryRankings();
+                if (currentCountry !== 'Global') {
+                    updateDataForCountry(currentCountry);
+                }
+            });
+        });
+
+        function initializeCharts() {
+            // Pie Chart with professional colors
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            pieChart = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Instagram', 'Twitch', 'Snapchat', 'X (Twitter)'],
+                    datasets: [{
+                        data: [2000, 140, 750, 450],
+                        backgroundColor: ['#8e44ad', '#6f42c1', '#f39c12', '#5dade2'],
+                        borderWidth: 3,
+                        borderColor: 'rgba(255,255,255,0.8)',
+                        hoverBorderWidth: 5,
+                        hoverBackgroundColor: ['#a569bd', '#9c88ff', '#f7dc6f', '#85c1e9']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 2500,
+                        easing: 'easeOutBounce'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'white',
+                                padding: 25,
+                                font: { size: 15, weight: '500' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 37, 47, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#5dade2',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed}M (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Bar Chart
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Instagram', 'Twitch', 'Snapchat', 'X (Twitter)'],
+                    datasets: [{
+                        label: 'Growth Rate (%)',
+                        data: [8.7, 18.5, 15.2, -2.1],
+                        backgroundColor: ['#8e44ad', '#6f42c1', '#f39c12', '#5dade2'],
+                        borderRadius: 15,
+                        borderSkipped: false,
+                        borderColor: ['#a569bd', '#9c88ff', '#f7dc6f', '#85c1e9'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2500,
+                        easing: 'easeOutElastic'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 37, 47, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#5dade2',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(93, 173, 226, 0.2)' },
+                            ticks: {
+                                color: 'white',
+                                font: { size: 13, weight: '400' },
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: 13, weight: '400' }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Scatter Chart
+            const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+            const scatterData = [
+                { x: 2000, y: 85.2, label: 'Instagram' },
+                { x: 140, y: 84.7, label: 'Twitch' },
+                { x: 750, y: 78.4, label: 'Snapchat' },
+                { x: 450, y: 65.8, label: 'X (Twitter)' }
+            ];
+
+            scatterChart = new Chart(scatterCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Platforms',
+                        data: scatterData,
+                        backgroundColor: ['#8e44ad', '#6f42c1', '#f39c12', '#5dade2'],
+                        borderColor: ['#a569bd', '#9c88ff', '#f7dc6f', '#85c1e9'],
+                        borderWidth: 3,
+                        pointRadius: 14,
+                        pointHoverRadius: 18
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2500,
+                        easing: 'easeOutBack'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 37, 47, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#5dade2',
+                            borderWidth: 2,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].raw.label;
+                                },
+                                label: function(context) {
+                                    return [
+                                        `Users: ${context.parsed.x}M`,
+                                        `Engagement: ${context.parsed.y}%`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Active Users (Millions)',
+                                color: 'white',
+                                font: { size: 14, weight: '500' }
+                            },
+                            grid: { color: 'rgba(93, 173, 226, 0.2)' },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: 12, weight: '400' }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Engagement Rate (%)',
+                                color: 'white',
+                                font: { size: 14, weight: '500' }
+                            },
+                            grid: { color: 'rgba(93, 173, 226, 0.2)' },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: 12, weight: '400' }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Line Chart
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            const years = ['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+
+            lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: 'Instagram',
+                            data: [12.2, 11.8, 18.1, 10.4, 8.7, 6.9, 8.7, 9.2],
+                            borderColor: '#8e44ad',
+                            backgroundColor: 'rgba(142, 68, 173, 0.1)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#8e44ad',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Twitch',
+                            data: [45.1, 48.2, 78.9, 52.8, 18.5, 15.2, 18.5, 19.8],
+                            borderColor: '#6f42c1',
+                            backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#6f42c1',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Snapchat',
+                            data: [18.8, 16.5, 22.2, 19.8, 15.2, 12.4, 15.2, 16.1],
+                            borderColor: '#f39c12',
+                            backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#f39c12',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'X (Twitter)',
+                            data: [5.1, 3.2, 1.8, 8.9, -2.1, 4.8, -2.1, 2.4],
+                            borderColor: '#5dade2',
+                            backgroundColor: 'rgba(93, 173, 226, 0.1)',
+                            borderWidth: 4,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#5dade2',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 3,
+                            pointRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2500,
+                        easing: 'easeInOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: 'white',
+                                font: { weight: '500', size: 13 },
+                                padding: 18
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 37, 47, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: '#5dade2',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(93, 173, 226, 0.2)' },
+                            ticks: {
+                                color: 'white',
+                                font: { size: 12, weight: '400' },
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: 'white',
+                                font: { size: 12, weight: '400' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCountryRankings() {
+            const platforms = ['instagram', 'snapchat', 'twitch', 'twitter'];
+            
+            platforms.forEach(platform => {
+                const container = document.getElementById(`${platform}Rankings`);
+                if (container) {
+                    const countries = Object.keys(countryData).sort((a, b) => {
+                        const aData = countryData[b].years[currentYear][platform].users;
+                        const bData = countryData[a].years[currentYear][platform].users;
+                        return aData - bData;
+                    });
+                    
+                    container.innerHTML = countries.map((country, index) => `
+                        <div class="country-item" onclick="selectCountry('${country}')">
+                            <div class="country-item-left">
+                                <div class="country-rank">${index + 1}</div>
+                                <img src="https://flagcdn.com/w40/${countryData[country].code}.png" alt="${country} flag" class="country-flag-small">
+                                <span class="country-item-name">${country}</span>
+                            </div>
+                            <span class="country-users">${countryData[country].years[currentYear][platform].users}M</span>
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+
+        function selectCountry(country) {
+            currentCountry = country;
+            
+            // Remove previous selections
+            document.querySelectorAll('.country-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked items
+            document.querySelectorAll('.country-item').forEach(item => {
+                if (item.textContent.includes(country)) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // Update country display with flag animation
+            updateCountryDisplay(country);
+            
+            // Update all data for the selected country
+            updateDataForCountry(country);
+            
+            // Show notification
+            showUpdateNotification(country);
+        }
+
+        function updateCountryDisplay(country) {
+            const data = countryData[country];
+            const flagElement = document.getElementById('currentFlag');
+            
+            // Update flag with animation
+            flagElement.src = `https://flagcdn.com/w320/${data.code}.png`;
+            flagElement.alt = `${country} flag`;
+            flagElement.classList.add('animate');
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                flagElement.classList.remove('animate');
+            }, 2000);
+            
+            document.getElementById('currentCountryName').textContent = country;
+            document.getElementById('currentCountryInfo').textContent = data.info;
+        }
+
+        function updateDataForCountry(country) {
+            const data = countryData[country].years[currentYear];
+            
+            // Animate stat cards
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.classList.add('updating');
+                setTimeout(() => card.classList.remove('updating'), 600);
+            });
+            
+            // Update stats with country-specific data
+            setTimeout(() => {
+                const totalUsers = (data.instagram.users + data.snapchat.users + data.twitch.users + data.twitter.users).toFixed(0);
+                const avgGrowth = ((data.instagram.growth + data.snapchat.growth + data.twitch.growth + data.twitter.growth) / 4).toFixed(1);
+                const avgEngagement = ((data.instagram.engagement + data.snapchat.engagement + data.twitch.engagement + data.twitter.engagement) / 4).toFixed(1);
+                
+                document.getElementById('totalUsers').textContent = totalUsers + 'M';
+                document.getElementById('growthRate').textContent = (avgGrowth >= 0 ? '+' : '') + avgGrowth + '%';
+                document.getElementById('engagement').textContent = avgEngagement + '%';
+                document.getElementById('countries').textContent = '1';
+            }, 400);
+            
+            // Update charts with country-specific data
+            setTimeout(() => {
+                // Update pie chart
+                if (pieChart) {
+                    pieChart.data.datasets[0].data = [
+                        data.instagram.users,
+                        data.twitch.users,
+                        data.snapchat.users,
+                        data.twitter.users
+                    ];
+                    pieChart.update('active');
+                }
+                
+                // Update bar chart
+                if (barChart) {
+                    barChart.data.datasets[0].data = [
+                        data.instagram.growth,
+                        data.twitch.growth,
+                        data.snapchat.growth,
+                        data.twitter.growth
+                    ];
+                    barChart.update('active');
+                }
+                
+                // Update scatter chart
+                if (scatterChart) {
+                    scatterChart.data.datasets[0].data = [
+                        { x: data.instagram.users, y: data.instagram.engagement, label: 'Instagram' },
+                        { x: data.twitch.users, y: data.twitch.engagement, label: 'Twitch' },
+                        { x: data.snapchat.users, y: data.snapchat.engagement, label: 'Snapchat' },
+                        { x: data.twitter.users, y: data.twitter.engagement, label: 'X (Twitter)' }
+                    ];
+                    scatterChart.update('active');
+                }
+                
+                // Update line chart with historical data for the country
+                if (lineChart) {
+                    const years = Object.keys(countryData[country].years).sort();
+                    
+                    lineChart.data.labels = years;
+                    lineChart.data.datasets[0].data = years.map(year => countryData[country].years[year].instagram.growth);
+                    lineChart.data.datasets[1].data = years.map(year => countryData[country].years[year].twitch.growth);
+                    lineChart.data.datasets[2].data = years.map(year => countryData[country].years[year].snapchat.growth);
+                    lineChart.data.datasets[3].data = years.map(year => countryData[country].years[year].twitter.growth);
+                    lineChart.update('active');
+                }
+            }, 800);
+        }
+
+        function showUpdateNotification(country) {
+            const notification = document.getElementById('updateNotification');
+            const countrySpan = document.getElementById('notificationCountry');
+            
+            countrySpan.textContent = country;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3500);
+        }
+
+        function filterPlatform(platform) {
+            currentPlatform = platform;
+            
+            // Update button states
+            document.querySelectorAll('.platform-btn').forEach(btn => {
+                btn.style.opacity = '0.7';
+                btn.style.transform = 'scale(0.95)';
+            });
+            
+            document.querySelector(`.platform-btn.${platform}`).style.opacity = '1';
+            document.querySelector(`.platform-btn.${platform}`).style.transform = 'scale(1.05)';
+            
+            // If a country is selected, update data for that platform
+            if (currentCountry !== 'Global') {
+                updateDataForCountry(currentCountry);
+            }
+        }
+
+        function updateDashboard() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            button.style.background = 'linear-gradient(45deg, #27ae60, #58d68d)';
+            
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-check"></i> Updated!';
+                
+                // Refresh all charts
+                if (pieChart) pieChart.update('active');
+                if (barChart) barChart.update('active');
+                if (scatterChart) scatterChart.update('active');
+                if (lineChart) lineChart.update('active');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = 'linear-gradient(45deg, #5dade2, #85c1e9)';
+                }, 1800);
+            }, 2500);
+        }
+
+        function exportData() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+            button.style.background = 'linear-gradient(45deg, #8e44ad, #a569bd)';
+            
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+                
+                // Create comprehensive CSV with country data
+                let csvContent = `Country,Year,Platform,Users(M),Growth(%),Engagement(%),Demographics\n`;
+                
+                Object.keys(countryData).forEach(country => {
+                    const countryInfo = countryData[country];
+                    Object.keys(countryInfo.years).forEach(year => {
+                        const yearData = countryInfo.years[year];
+                        ['instagram', 'snapchat', 'twitch', 'twitter'].forEach(platform => {
+                            const platformData = yearData[platform];
+                            csvContent += `${country},${year},${platform},${platformData.users},${platformData.growth},${platformData.engagement},"${platformData.demographics}"\n`;
+                        });
+                    });
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `social_media_analytics_${currentCountry.toLowerCase().replace(/\s+/g, '_')}_${currentYear}_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = 'linear-gradient(45deg, #5dade2, #85c1e9)';
+                }, 1800);
+            }, 2500);
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99400017b48d7f17',t:'MTc2MTM3NzM0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
